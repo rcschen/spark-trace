@@ -61,7 +61,7 @@ import org.apache.spark.util.{CallSite, ClosureCleaner, MetadataCleaner, Metadat
  */
 
 class SparkContext(config: SparkConf) extends Logging {
-
+  println("===========here we go==================")
   // This is used only by YARN for now, but should be relevant to other cluster types (Mesos,
   // etc) too. This is typically generated from InputFormatInfo.computePreferredLocations. It
   // contains a map from hostname to a list of input format splits on the host.
@@ -86,6 +86,7 @@ class SparkContext(config: SparkConf) extends Logging {
     this(config)
     this.preferredNodeLocationData = preferredNodeLocationData
   }
+   logInfo("==========---------------!!!!")
 
   /**
    * Alternative constructor that allows setting common Spark properties directly
@@ -425,6 +426,7 @@ class SparkContext(config: SparkConf) extends Logging {
    * the argument to avoid this.
    */
   def parallelize[T: ClassTag](seq: Seq[T], numSlices: Int = defaultParallelism): RDD[T] = {
+    logInfo("---sparkContext-----parallelize------>"+seq)
     new ParallelCollectionRDD[T](this, seq, numSlices, Map[Int, Seq[String]]())
   }
 
@@ -1063,9 +1065,12 @@ class SparkContext(config: SparkConf) extends Logging {
     if (dagScheduler == null) {
       throw new SparkException("SparkContext has been shutdown")
     }
-    val callSite = getCallSite
+    logInfo("----second impossible!!!!getCallSite?------"+partitions)
+     val callSite = getCallSite
+    logInfo("----second is here to go partition?------")
     val cleanedFunc = clean(func)
     logInfo("Starting job: " + callSite.shortForm)
+    logInfo("----second go into the sc runjob------")
     val start = System.nanoTime
     dagScheduler.runJob(rdd, cleanedFunc, partitions, callSite, allowLocal,
       resultHandler, localProperties.get)
@@ -1085,6 +1090,8 @@ class SparkContext(config: SparkConf) extends Logging {
       partitions: Seq[Int],
       allowLocal: Boolean
       ): Array[U] = {
+    logInfo("---11111111111111111------")
+
     val results = new Array[U](partitions.size)
     runJob[T, U](rdd, func, partitions, allowLocal, (index, res) => results(index) = res)
     results
@@ -1100,6 +1107,8 @@ class SparkContext(config: SparkConf) extends Logging {
       partitions: Seq[Int],
       allowLocal: Boolean
       ): Array[U] = {
+    logInfo("---222222222222------")
+
     runJob(rdd, (context: TaskContext, iter: Iterator[T]) => func(iter), partitions, allowLocal)
   }
 
@@ -1107,6 +1116,8 @@ class SparkContext(config: SparkConf) extends Logging {
    * Run a job on all partitions in an RDD and return the results in an array.
    */
   def runJob[T, U: ClassTag](rdd: RDD[T], func: (TaskContext, Iterator[T]) => U): Array[U] = {
+    logInfo("---33333333333333------")
+
     runJob(rdd, func, 0 until rdd.partitions.size, false)
   }
 
@@ -1114,6 +1125,7 @@ class SparkContext(config: SparkConf) extends Logging {
    * Run a job on all partitions in an RDD and return the results in an array.
    */
   def runJob[T, U: ClassTag](rdd: RDD[T], func: Iterator[T] => U): Array[U] = {
+    logInfo("---44444444444444444------")
     runJob(rdd, func, 0 until rdd.partitions.size, false)
   }
 
@@ -1125,8 +1137,11 @@ class SparkContext(config: SparkConf) extends Logging {
     processPartition: (TaskContext, Iterator[T]) => U,
     resultHandler: (Int, U) => Unit)
   {
+    logInfo("---55555555555555555------")
+
     runJob[T, U](rdd, processPartition, 0 until rdd.partitions.size, false, resultHandler)
   }
+
 
   /**
    * Run a job on all partitions in an RDD and pass the results to a handler function.
@@ -1135,8 +1150,9 @@ class SparkContext(config: SparkConf) extends Logging {
       rdd: RDD[T],
       processPartition: Iterator[T] => U,
       resultHandler: (Int, U) => Unit)
-  {
+  { logInfo("----first go into the sc runjob------"+processPartition)
     val processFunc = (context: TaskContext, iter: Iterator[T]) => processPartition(iter)
+    logInfo("----first is processPartition------")
     runJob[T, U](rdd, processFunc, 0 until rdd.partitions.size, false, resultHandler)
   }
 

@@ -506,7 +506,9 @@ class DAGScheduler(
       allowLocal: Boolean,
       resultHandler: (Int, U) => Unit,
       properties: Properties = null)
-  {
+  { logInfo("----I am here to DAGScheduler-------for finding partitions"+ partitions)
+    logInfo("----I am here to DAGScheduler-------for finding rdd.partitions"+ rdd.partitions.getClass().getName())
+
     val waiter = submitJob(rdd, func, partitions, callSite, allowLocal, resultHandler, properties)
     waiter.awaitResult() match {
       case JobSucceeded => {}

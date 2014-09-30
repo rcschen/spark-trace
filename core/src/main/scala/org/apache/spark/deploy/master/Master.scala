@@ -784,7 +784,7 @@ private[spark] object Master extends Logging {
   val systemName = "sparkMaster"
   private val actorName = "Master"
   val sparkUrlRegex = "spark://([^:]+):([0-9]+)".r
-
+  logInfo("------>Master Start : $sparkUrlRegex")
   def main(argStrings: Array[String]) {
     SignalLogger.register(log)
     val conf = new SparkConf

@@ -143,6 +143,7 @@ private[spark] object CoarseGrainedExecutorBackend extends Logging {
   }
 
   def main(args: Array[String]) {
+    logInfo(s"CCCCCC------backend---->$args "+args.length)
     args.length match {
       case x if x < 4 =>
         System.err.println(
@@ -153,6 +154,8 @@ private[spark] object CoarseGrainedExecutorBackend extends Logging {
       case 4 =>
         run(args(0), args(1), args(2), args(3).toInt, None)
       case x if x > 4 =>
+        logInfo(s"CCCCCC----->"+args(0)+' '+args(1)+' '+args(2)+' '+args(3)+' '+args(4)+' ')
+
         run(args(0), args(1), args(2), args(3).toInt, Some(args(4)))
     }
   }

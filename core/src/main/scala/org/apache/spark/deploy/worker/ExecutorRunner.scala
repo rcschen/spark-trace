@@ -132,12 +132,15 @@ private[spark] class ExecutorRunner(
     try {
       // Create the executor's working directory
       val executorDir = new File(workDir, appId + "/" + execId)
+      logInfo("-----executorDir-------->"+executorDir)
       if (!executorDir.mkdirs()) {
         throw new IOException("Failed to create directory " + executorDir)
       }
 
       // Launch the process
       val command = getCommandSeq
+      logInfo(s"DDDDDJJJJaaaaaaaaaaala$command")
+
       logInfo("Launch command: " + command.mkString("\"", "\" \"", "\""))
       val builder = new ProcessBuilder(command: _*).directory(executorDir)
       val env = builder.environment()

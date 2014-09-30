@@ -199,11 +199,15 @@ abstract class RDD[T: ClassTag](
    * RDD is checkpointed or not.
    */
   final def partitions: Array[Partition] = {
+    logInfo("-----------RDD------partitions")
     checkpointRDD.map(_.partitions).getOrElse {
       if (partitions_ == null) {
         partitions_ = getPartitions
+        logInfo("  -----------RDD------partitions--partition!=null--")
       }
+      logInfo("  -----------RDD------Leaving partitions--"+partitions_)
       partitions_
+
     }
   }
 
@@ -841,8 +845,11 @@ abstract class RDD[T: ClassTag](
    * associative binary operator.
    */
   def reduce(f: (T, T) => T): T = {
+    logInfo("----------reduce-----------------begin") 
     val cleanF = sc.clean(f)
     val reducePartition: Iterator[T] => Option[T] = iter => {
+      logInfo("----------reduce-NONONONO-----reducePartition") 
+
       if (iter.hasNext) {
         Some(iter.reduceLeft(cleanF))
       } else {
@@ -858,9 +865,13 @@ abstract class RDD[T: ClassTag](
         }
       }
     }
+    logInfo("----------reduce-----------------beforeRunjob") 
+
     sc.runJob(this, reducePartition, mergeResult)
     // Get the final result out of our Option, or throw an exception if the RDD was empty
+    logInfo("----------reduce-----------------end") 
     jobResult.getOrElse(throw new UnsupportedOperationException("empty collection"))
+
   }
 
   /**

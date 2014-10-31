@@ -468,6 +468,7 @@ class PairRDDFunctions[K, V](self: RDD[(K, V)])
    * (k, v2) is in `other`. Uses the given Partitioner to partition the output RDD.
    */
   def join[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (V, W))] = {
+    logInfo("----------------Join------------1")
     this.cogroup(other, partitioner).flatMapValues( pair =>
       for (v <- pair._1; w <- pair._2) yield (v, w)
     )
@@ -533,6 +534,7 @@ class PairRDDFunctions[K, V](self: RDD[(K, V)])
    * (k, v2) is in `other`. Performs a hash join across the cluster.
    */
   def join[W](other: RDD[(K, W)]): RDD[(K, (V, W))] = {
+    logInfo("----------------Join------------2:"+self.getClass().getName()+" other:"+other.getClass().getName())
     join(other, defaultPartitioner(self, other))
   }
 
@@ -542,6 +544,7 @@ class PairRDDFunctions[K, V](self: RDD[(K, V)])
    * (k, v2) is in `other`. Performs a hash join across the cluster.
    */
   def join[W](other: RDD[(K, W)], numPartitions: Int): RDD[(K, (V, W))] = {
+    logInfo("----------------Join------------3")
     join(other, new HashPartitioner(numPartitions))
   }
 
@@ -630,6 +633,10 @@ class PairRDDFunctions[K, V](self: RDD[(K, V)])
     if (partitioner.isInstanceOf[HashPartitioner] && keyClass.isArray) {
       throw new SparkException("Default partitioner cannot partition array keys.")
     }
+    logInfo("--copgroup------start to new CoGroupRDD"+other1)
+    logInfo("--copgroup------start to new CoGroupRDD"+other2)
+    logInfo("--copgroup------start to new CoGroupRDD"+other3)
+
     val cg = new CoGroupedRDD[K](Seq(self, other1, other2, other3), partitioner)
     cg.mapValues { case Array(vs, w1s, w2s, w3s) =>
        (vs.asInstanceOf[Iterable[V]],

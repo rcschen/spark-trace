@@ -61,7 +61,7 @@ private[spark] class Stage(
   val numPartitions = rdd.partitions.size
   val outputLocs = Array.fill[List[MapStatus]](numPartitions)(Nil)
   var numAvailableOutputs = 0
-
+  logInfo("--------Stage "+id+" ------rdd.getClass.getName"+rdd.getClass().getName())
   /** Set of jobs that this stage belongs to. */
   val jobIds = new HashSet[Int]
 

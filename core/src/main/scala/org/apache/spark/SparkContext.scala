@@ -1107,7 +1107,6 @@ class SparkContext(config: SparkConf) extends Logging {
       partitions: Seq[Int],
       allowLocal: Boolean
       ): Array[U] = {
-    logInfo("---222222222222------")
 
     runJob(rdd, (context: TaskContext, iter: Iterator[T]) => func(iter), partitions, allowLocal)
   }
@@ -1116,8 +1115,6 @@ class SparkContext(config: SparkConf) extends Logging {
    * Run a job on all partitions in an RDD and return the results in an array.
    */
   def runJob[T, U: ClassTag](rdd: RDD[T], func: (TaskContext, Iterator[T]) => U): Array[U] = {
-    logInfo("---33333333333333------")
-
     runJob(rdd, func, 0 until rdd.partitions.size, false)
   }
 
@@ -1125,7 +1122,6 @@ class SparkContext(config: SparkConf) extends Logging {
    * Run a job on all partitions in an RDD and return the results in an array.
    */
   def runJob[T, U: ClassTag](rdd: RDD[T], func: Iterator[T] => U): Array[U] = {
-    logInfo("---44444444444444444------")
     runJob(rdd, func, 0 until rdd.partitions.size, false)
   }
 
@@ -1137,8 +1133,6 @@ class SparkContext(config: SparkConf) extends Logging {
     processPartition: (TaskContext, Iterator[T]) => U,
     resultHandler: (Int, U) => Unit)
   {
-    logInfo("---55555555555555555------")
-
     runJob[T, U](rdd, processPartition, 0 until rdd.partitions.size, false, resultHandler)
   }
 

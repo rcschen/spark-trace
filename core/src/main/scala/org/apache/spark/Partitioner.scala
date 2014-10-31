@@ -38,7 +38,7 @@ abstract class Partitioner extends Serializable {
   def getPartition(key: Any): Int
 }
 
-object Partitioner {
+object Partitioner extends Logging {
   /**
    * Choose a partitioner to use for a cogroup-like operation between a number of RDDs.
    *
@@ -55,7 +55,10 @@ object Partitioner {
    * We use two method parameters (rdd, others) to enforce callers passing at least 1 RDD.
    */
   def defaultPartitioner(rdd: RDD[_], others: RDD[_]*): Partitioner = {
+    logInfo("--defaultPartitioner--bbbbb---")
     val bySize = (Seq(rdd) ++ others).sortBy(_.partitions.size).reverse
+    logInfo("--defaultPartitioner--eeeee---")
+
     for (r <- bySize if r.partitioner.isDefined) {
       return r.partitioner.get
     }

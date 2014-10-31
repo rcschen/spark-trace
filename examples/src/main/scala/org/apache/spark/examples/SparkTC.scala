@@ -45,7 +45,10 @@ object SparkTC {
     val sparkConf = new SparkConf().setAppName("SparkTC")
     val spark = new SparkContext(sparkConf)
     val slices = if (args.length > 0) args(0).toInt else 2
-    var tc = spark.parallelize(generateGraph, slices).cache()
+    val tmp = generateGraph
+    //var tc = spark.parallelize(generateGraph, slices).cache()
+    println("-----SparkTC------>"+tmp)
+    var tc = spark.parallelize(tmp, slices).cache()                                               //stage3
 
     // Linear transitive closure: each round grows paths by one edge,
     // by joining the graph's edges with the already-discovered paths.
@@ -53,7 +56,10 @@ object SparkTC {
     // the graph to obtain the path (x, z).
 
     // Because join() joins on keys, the edges are stored in reversed order.
-    val edges = tc.map(x => (x._2, x._1))
+    val edges = tc.map(x => {  println( "----SparkTC---x-->"+x+"--->"+(x._2,x._1))                //stage 2
+                               (x._2, x._1)
+                            })
+    println("-----SparkTC----getEdges------->"+edges)
 
     // This join is iterated until a fixed point is reached.
     var oldCount = 0L
@@ -62,8 +68,12 @@ object SparkTC {
       oldCount = nextCount
       // Perform the join, obtaining an RDD of (y, (z, x)) pairs,
       // then project the result to obtain the new (x, z) paths.
-      tc = tc.union(tc.join(edges).map(x => (x._2._2, x._2._1))).distinct().cache()
-      nextCount = tc.count()
+      tc = tc.union(tc.join(edges).map(x => {
+                                               println(x+"!!!!!!!!!!!!!!!------>"+(x._2._2, x._2._1))
+                                              (x._2._2, x._2._1)
+                                            } 
+                                            )).distinct().cache()                                   //stage 4
+      nextCount = tc.count()                                                                        //stage 1 f
     } while (nextCount != oldCount)
 
     println("TC has " + tc.count() + " edges.")

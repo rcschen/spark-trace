@@ -79,9 +79,9 @@ abstract class RDD[T: ClassTag](
   ) extends Serializable with Logging {
 
   /** Construct an RDD with just a one-to-one dependency on one parent */
-  def this(@transient oneParent: RDD[_]) =
+  def this(@transient oneParent: RDD[_]) = {
     this(oneParent.context , List(new OneToOneDependency(oneParent)))
-
+  }
   private[spark] def conf = sc.conf
   // =======================================================================
   // Methods that should be implemented by subclasses of RDD
@@ -155,7 +155,8 @@ abstract class RDD[T: ClassTag](
   def persist(): this.type = persist(StorageLevel.MEMORY_ONLY)
 
   /** Persist this RDD with the default storage level (`MEMORY_ONLY`). */
-  def cache(): this.type = persist()
+  def cache(): this.type = { logInfo("RDD----go into cache ----")
+                             persist()}
 
   /**
    * Mark the RDD as non-persistent, and remove all blocks for it from memory and disk.
@@ -190,6 +191,9 @@ abstract class RDD[T: ClassTag](
       if (dependencies_ == null) {
         dependencies_ = getDependencies
       }
+      //logInfo("--dependencies-------"+this+":--"+dependencies_)
+      //dependencies_.foreach(x => logInfo(">>dependencies>>>>>>>"+this+":-- dep'rdd:"+x.rdd))
+     
       dependencies_
     }
   }
@@ -199,13 +203,12 @@ abstract class RDD[T: ClassTag](
    * RDD is checkpointed or not.
    */
   final def partitions: Array[Partition] = {
-    logInfo("-----------RDD------partitions")
     checkpointRDD.map(_.partitions).getOrElse {
       if (partitions_ == null) {
         partitions_ = getPartitions
-        logInfo("  -----------RDD------partitions--partition!=null--")
+        //logInfo("--paritions-------partition!=null--")
       }
-      logInfo("  -----------RDD------Leaving partitions--"+partitions_)
+      //logInfo("  -----------RDD------Leaving partitions--"+partitions_)
       partitions_
 
     }
@@ -271,7 +274,8 @@ abstract class RDD[T: ClassTag](
   /**
    * Return a new RDD by applying a function to all elements of this RDD.
    */
-  def map[U: ClassTag](f: T => U): RDD[U] = new MappedRDD(this, sc.clean(f))
+  def map[U: ClassTag](f: T => U): RDD[U] = {logInfo("--map----go into map ----") 
+                                             new MappedRDD(this, sc.clean(f)) }
 
   /**
    *  Return a new RDD by first applying a function to all elements of this
@@ -294,7 +298,8 @@ abstract class RDD[T: ClassTag](
   /**
    * Return a new RDD containing the distinct elements in this RDD.
    */
-  def distinct(): RDD[T] = distinct(partitions.size)
+  def distinct(): RDD[T] = { logInfo("--distinct----go into distinct----")
+                             distinct(partitions.size) }
 
   /**
    * Return a new RDD that has exactly numPartitions partitions.
@@ -439,7 +444,8 @@ abstract class RDD[T: ClassTag](
    * Return the union of this RDD and another one. Any identical elements will appear multiple
    * times (use `.distinct()` to eliminate them).
    */
-  def union(other: RDD[T]): RDD[T] = new UnionRDD(sc, Array(this, other))
+  def union(other: RDD[T]): RDD[T] = {logInfo("--union----go into union----") 
+                                      new UnionRDD(sc, Array(this, other))}
 
   /**
    * Return the union of this RDD and another one. Any identical elements will appear multiple
@@ -845,10 +851,10 @@ abstract class RDD[T: ClassTag](
    * associative binary operator.
    */
   def reduce(f: (T, T) => T): T = {
-    logInfo("----------reduce-----------------begin") 
+    logInfo("--reduce-----------------begin") 
     val cleanF = sc.clean(f)
     val reducePartition: Iterator[T] => Option[T] = iter => {
-      logInfo("----------reduce-NONONONO-----reducePartition") 
+      logInfo("--reduce-NONONONO-----reducePartition") 
 
       if (iter.hasNext) {
         Some(iter.reduceLeft(cleanF))

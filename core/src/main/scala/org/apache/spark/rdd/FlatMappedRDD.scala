@@ -26,6 +26,7 @@ class FlatMappedRDD[U: ClassTag, T: ClassTag](
     prev: RDD[T],
     f: T => TraversableOnce[U])
   extends RDD[U](prev) {
+  logInfo("--FlatMappedRDD--------prev:"+prev.getClass().getName())
 
   override def getPartitions: Array[Partition] = firstParent[T].partitions
 

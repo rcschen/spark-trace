@@ -43,6 +43,7 @@ class ShuffledRDD[K, V, C](
     @transient var prev: RDD[_ <: Product2[K, V]],
     part: Partitioner)
   extends RDD[(K, C)](prev.context, Nil) {
+  logInfo("--ShuffleRDD--------prev:"+prev.getClass().getName())
 
   private var serializer: Option[Serializer] = None
 

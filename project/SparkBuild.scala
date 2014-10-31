@@ -42,8 +42,9 @@ object BuildCommons {
       .map(ProjectRef(buildLocation, _))
 
   val assemblyProjects@Seq(assembly, examples) = Seq("assembly", "examples")
-    .map(ProjectRef(buildLocation, _))
+     .map(ProjectRef(buildLocation, _))
 
+  
   val tools = ProjectRef(buildLocation, "tools")
   // Root project.
   val spark = ProjectRef(buildLocation, "spark")

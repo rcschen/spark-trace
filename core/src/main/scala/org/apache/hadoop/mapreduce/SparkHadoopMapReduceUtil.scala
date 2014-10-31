@@ -20,9 +20,12 @@ package org.apache.hadoop.mapreduce
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
 
 import org.apache.hadoop.conf.Configuration
+import org.apache.spark.Logging
 
 private[apache]
-trait SparkHadoopMapReduceUtil {
+trait SparkHadoopMapReduceUtil extends Logging {
+  logInfo("ooooooooooooooooooooooooooooooooooooooo")
+
   def newJobContext(conf: Configuration, jobId: JobID): JobContext = {
     val klass = firstAvailableClass(
         "org.apache.hadoop.mapreduce.task.JobContextImpl",  // hadoop2, hadoop2-yarn

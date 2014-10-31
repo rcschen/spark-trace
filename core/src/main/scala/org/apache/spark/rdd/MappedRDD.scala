@@ -23,8 +23,8 @@ import org.apache.spark.{Logging, Partition, TaskContext}
 
 private[spark]
 class MappedRDD[U: ClassTag, T: ClassTag](prev: RDD[T], f: T => U)
-  extends RDD[U](prev) with Logging{
-
+  extends RDD[U](prev) {
+  logInfo("--mappedrdd--------prev:"+prev.getClass().getName())
   override def getPartitions: Array[Partition] = {
       logInfo("--------MappedRDD-------getPartition")
       firstParent[T].partitions

@@ -794,7 +794,7 @@ class DAGScheduler(
         (0 until job.numPartitions).filter(id => !job.finished(id))
       }
     }
-
+    logInfo("--submitMissing--partitionsToCompute:"+partitionsToCompute)
     val properties = if (jobIdToActiveJob.contains(jobId)) {
       jobIdToActiveJob(stage.jobId).properties
     } else {
@@ -803,6 +803,8 @@ class DAGScheduler(
     }
 
     runningStages += stage
+    logInfo("--submitMissing--runningStages:"+runningStages)
+
     // SparkListenerStageSubmitted should be posted before testing whether tasks are
     // serializable. If tasks are not serializable, a SparkListenerStageCompleted event
     // will be posted, which should always come after a corresponding SparkListenerStageSubmitted
@@ -842,19 +844,26 @@ class DAGScheduler(
     val tasks: Seq[Task[_]] = if (stage.isShuffleMap) {
       partitionsToCompute.map { id =>
         val locs = getPreferredLocs(stage.rdd, id)
+        logInfo("--submitMissing--shuff-in partitionsToCompute "+stage+" locs:"+locs)
         val part = stage.rdd.partitions(id)
+        logInfo("--submitMissing--shuff-in partitionsToCompute "+stage+" part:"+part)
         new ShuffleMapTask(stage.id, taskBinary, part, locs)
       }
     } else {
       val job = stage.resultOfJob.get
       partitionsToCompute.map { id =>
         val p: Int = job.partitions(id)
+        logInfo("--submitMissing--not shuff-in partitionsToCompute "+stage+" p:"+p)
         val part = stage.rdd.partitions(p)
+        logInfo("--submitMissing--not shuff-in partitionsToCompute "+stage+" part:"+part)
         val locs = getPreferredLocs(stage.rdd, p)
+        logInfo("--submitMissing--not shuff-in partitionsToCompute "+stage+" locs:"+locs)
         new ResultTask(stage.id, taskBinary, part, locs, id)
       }
     }
-
+    logInfo("--subMissingTask----Tasks"+tasks)
+    tasks.foreach(x=> logInfo("==subMissingTask===foreach=taskstage=>"+x.stageId+"-paid-"+x.partitionId))
+    readLine("------------------------------------------------------------")
     if (tasks.size > 0) {
       // Preemptively serialize a task to make sure it can be serialized. We are catching this
       // exception here because it would be fairly hard to catch the non-serializable exception

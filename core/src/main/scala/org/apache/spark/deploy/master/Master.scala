@@ -217,6 +217,7 @@ private[spark] class Master(
     }
 
     case RequestSubmitDriver(description) => {
+      logInfo("RRRRRRRRequestSuuuuuubmitDRiverrrrrr")
       if (state != RecoveryState.ALIVE) {
         val msg = s"Can only accept driver submissions in ALIVE state. Current state: $state."
         sender ! SubmitDriverResponse(false, None, msg)
@@ -478,6 +479,8 @@ private[spark] class Master(
    * every time a new app joins or resource availability changes.
    */
   private def schedule() {
+    logInfo("ssssssssscheduleeeeeeeeeeeeeeeee")
+
     if (state != RecoveryState.ALIVE) { return }
 
     // First schedule drivers, they take strict precedence over applications
@@ -621,6 +624,7 @@ private[spark] class Master(
     actorToApp(app.driver) = app
     addressToApp(appAddress) = app
     waitingApps += app
+    logInfo("--->>>master<<<---waitingApps"+ waitingApps)
   }
 
   def finishApplication(app: ApplicationInfo) {

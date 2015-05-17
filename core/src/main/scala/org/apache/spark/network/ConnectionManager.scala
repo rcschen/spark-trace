@@ -196,7 +196,10 @@ private[spark] class ConnectionManager(
       override def run() {
         var register: Boolean = false
         try {
+          logInfo("--triggerRead--start to connetion read()---register-"+register)
           register = conn.read()
+          logInfo("--triggerRead--stop to connetion read()---register-"+register)
+
         } finally {
           readRunnableStarted.synchronized {
             readRunnableStarted -= key
@@ -272,12 +275,15 @@ private[spark] class ConnectionManager(
   def run() {
     try {
       while(!selectorThread.isInterrupted) {
+        logInfo("@@@@@@@@@@@@@@@@"+messageStatuses)
+
         while (!registerRequests.isEmpty) {
           val conn: SendingConnection = registerRequests.dequeue()
           addListeners(conn)
           conn.connect()
           addConnection(conn)
         }
+        logInfo("-----in daemon--1-registerRequests isEmpty->"+messageStatuses)
 
         while(!keyInterestChangeRequests.isEmpty) {
           val (key, ops) = keyInterestChangeRequests.dequeue()
@@ -320,9 +326,11 @@ private[spark] class ConnectionManager(
             }
           }
         }
+        logInfo("----in daemon---2--keyInterestChangeRequests is Empty->"+messageStatuses)
 
         val selectedKeysCount =
           try {
+            logInfo("----before--3--select.select()--->"+messageStatuses)
             selector.select()
           } catch {
             // Explicitly only dealing with CancelledKeyException here since other exceptions
@@ -352,6 +360,7 @@ private[spark] class ConnectionManager(
             }
             0
           }
+        logInfo("---in daemon--4--beforeCheck SelectKeyCount == 0 and isInterrupted-->"+messageStatuses)
 
         if (selectedKeysCount == 0) {
           logDebug("Selector selected " + selectedKeysCount + " of " + selector.keys.size +
@@ -361,7 +370,7 @@ private[spark] class ConnectionManager(
           logInfo("Selector thread was interrupted!")
           return
         }
-
+        logInfo("---in daemon--4--afterCheck SelectKeyCount == 0 and isInterrupted-->"+messageStatuses)
         if (0 != selectedKeysCount) {
           val selectedKeys = selector.selectedKeys().iterator()
           while (selectedKeys.hasNext) {
@@ -370,15 +379,19 @@ private[spark] class ConnectionManager(
             try {
               if (key.isValid) {
                 if (key.isAcceptable) {
+                  logInfo("-in daemon--5-1---key->isAcceptable")
                   acceptConnection(key)
                 } else
                 if (key.isConnectable) {
+                  logInfo("-in daemon--5-2----key->isConnectable")
                   triggerConnect(key)
                 } else
                 if (key.isReadable) {
+                  logInfo("-in daemon--5-3---key->isReadable")
                   triggerRead(key)
                 } else
                 if (key.isWritable) {
+                  logInfo("-in daemon--5-4---key->isWriteable")
                   triggerWrite(key)
                 }
               } else {
@@ -415,7 +428,9 @@ private[spark] class ConnectionManager(
       try {
         val newConnectionId = new ConnectionId(id, idCount.getAndIncrement.intValue)
         val newConnection = new ReceivingConnection(newChannel, selector, newConnectionId)
+        logInfo("--before--!!!!---message--->"+messageStatuses)
         newConnection.onReceive(receiveMessage)
+        logInfo("--after --!!!!---message--->"+messageStatuses)
         addListeners(newConnection)
         addConnection(newConnection)
         logInfo("Accepted connection from [" + newConnection.remoteAddress + "]")
@@ -436,6 +451,7 @@ private[spark] class ConnectionManager(
 
   def addConnection(connection: Connection) {
     connectionsByKey += ((connection.key, connection))
+    logInfo("cccccccccconnectionsByKey"+connectionsByKey)
   }
 
   def removeConnection(connection: Connection) {
@@ -512,7 +528,7 @@ private[spark] class ConnectionManager(
 
   def receiveMessage(connection: Connection, message: Message) {
     val connectionManagerId = ConnectionManagerId.fromSocketAddress(message.senderAddress)
-    logDebug("Received [" + message + "] from [" + connectionManagerId + "]")
+    logInfo("--------Received [" + message + "] from [" + connectionManagerId + "]")
     val runnable = new Runnable() {
       val creationTime = System.currentTimeMillis
       def run() {
@@ -641,14 +657,14 @@ private[spark] class ConnectionManager(
       connectionManagerId: ConnectionManagerId,
       message: Message,
       connection: Connection) {
-    logDebug("Handling [" + message + "] from [" + connectionManagerId + "]")
+    logInfo("Handling [" + message + "] from [" + connectionManagerId + "]")
     message match {
       case bufferMessage: BufferMessage => {
         if (authEnabled) {
           val res = handleAuthentication(connection, bufferMessage)
           if (res) {
             // message was security negotiation so skip the rest
-            logDebug("After handleAuth result was true, returning")
+            logInfo("After handleAuth result was true, returning")
             return
           }
         }
@@ -658,6 +674,8 @@ private[spark] class ConnectionManager(
               case Some(status) => {
                 messageStatuses -= bufferMessage.ackId
                 status.markDone(Some(message))
+                logInfo("==handleMessage===in hasAckId==ms====>"+messageStatuses)
+
               }
               case None => {
                 /**
@@ -679,20 +697,23 @@ private[spark] class ConnectionManager(
           try {
             ackMessage = if (onReceiveCallback != null) {
               logDebug("Calling back")
+              logInfo("Calling back====>"+onReceiveCallback)
               onReceiveCallback(bufferMessage, connectionManagerId)
             } else {
-              logDebug("Not calling back as callback is null")
+              logInfo("Not calling back as callback is null")
               None
             }
+            logInfo("==handleMessage===no ack==ms====>"+messageStatuses)
 
             if (ackMessage.isDefined) {
               if (!ackMessage.get.isInstanceOf[BufferMessage]) {
-                logDebug("Response to " + bufferMessage + " is not a buffer message, it is of type "
+                logInfo("Response to " + bufferMessage + " is not a buffer message, it is of type "
                   + ackMessage.get.getClass)
               } else if (!ackMessage.get.asInstanceOf[BufferMessage].hasAckId) {
-                logDebug("Response to " + bufferMessage + " does not have ack id set")
+                logInfo("Response to " + bufferMessage + " does not have ack id set")
                 ackMessage.get.asInstanceOf[BufferMessage].ackId = bufferMessage.id
               }
+
             }
           } catch {
             case e: Exception => {
@@ -705,6 +726,8 @@ private[spark] class ConnectionManager(
             sendMessage(connectionManagerId, ackMessage.getOrElse {
               Message.createBufferMessage(bufferMessage.id)
             })
+            logInfo("==handleMessage===finally sendMessage==ms====>"+messageStatuses)
+
           }
         }
       }
@@ -826,7 +849,7 @@ private[spark] class ConnectionManager(
         }
       }
     }
-    logDebug("Sending [" + message + "] to [" + connectionManagerId + "]")
+    logInfo("----Sending [" + message + "] to [" + connectionManagerId + "]")
     connection.send(message)
 
     wakeupSelector()
@@ -875,7 +898,7 @@ private[spark] class ConnectionManager(
     messageStatuses.synchronized {
       messageStatuses += ((message.id, status))
     }
-
+    logInfo("==sendMessageReliable=====ms====>"+messageStatuses)
     ackTimeoutMonitor.schedule(timeoutTask, ackTimeout * 1000)
     sendMessage(connectionManagerId, message)
     promise.future
@@ -903,7 +926,9 @@ private[spark] class ConnectionManager(
 }
 
 
-private[spark] object ConnectionManager {
+//private[spark] object ConnectionManager {
+object ConnectionManager {
+
   import ExecutionContext.Implicits.global
 
   def main(args: Array[String]) {

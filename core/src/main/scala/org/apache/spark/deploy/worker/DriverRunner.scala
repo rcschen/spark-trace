@@ -105,7 +105,7 @@ private[spark] class DriverRunner(
           }
 
         finalState = Some(state)
-
+        logInfo("############DriverRunner already run#####")
         worker ! DriverStateChanged(driverId, state, finalException)
       }
     }.start()
@@ -167,6 +167,8 @@ private[spark] class DriverRunner(
 
   private def launchDriver(command: Seq[String], envVars: Map[String, String], baseDir: File,
                            supervise: Boolean) {
+    logInfo("### DriverRunner LunchDriver--"+command+" ###")
+    logInfo("--LLLLLLLLLLLLLunchDriver--"+command)
     val builder = new ProcessBuilder(command: _*).directory(baseDir)
     envVars.map{ case(k,v) => builder.environment().put(k, v) }
 

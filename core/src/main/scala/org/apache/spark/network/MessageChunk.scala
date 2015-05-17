@@ -34,7 +34,7 @@ class MessageChunk(val header: MessageChunkHeader, val buffer: ByteBuffer) {
     }
     ab
   }
-
+  def getBuffer() = buffer
   override def toString = {
     "" + this.getClass.getSimpleName + " (id = " + header.id + ", size = " + size + ")"
   }

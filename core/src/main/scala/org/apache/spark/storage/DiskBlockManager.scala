@@ -57,7 +57,7 @@ private[spark] class DiskBlockManager(blockManager: BlockManager, conf: SparkCon
     val hash = Utils.nonNegativeHash(filename)
     val dirId = hash % localDirs.length
     val subDirId = (hash / localDirs.length) % subDirsPerLocalDir
-
+    logInfo("---DiskBlockManager--dirId:"+dirId+" subDirId:"+subDirId+" => "+"%02x".format(subDirId)+" filename:"+filename)
     // Create the subdirectory if it doesn't already exist
     var subDir = subDirs(dirId)(subDirId)
     if (subDir == null) {
@@ -67,6 +67,7 @@ private[spark] class DiskBlockManager(blockManager: BlockManager, conf: SparkCon
           old
         } else {
           val newDir = new File(localDirs(dirId), "%02x".format(subDirId))
+          logInfo("---DiskBlockmanager--absoluatePath:"+newDir.getAbsolutePath())
           newDir.mkdir()
           subDirs(dirId)(subDirId) = newDir
           newDir
@@ -74,7 +75,9 @@ private[spark] class DiskBlockManager(blockManager: BlockManager, conf: SparkCon
       }
     }
 
-    new File(subDir, filename)
+    var retDir = new File(subDir, filename)
+    logInfo("---DiskBlockmanager--retDir absoluatePath:"+retDir.getAbsolutePath()+" subDir:"+subDir+" filename:"+filename)
+    retDir
   }
 
   def getFile(blockId: BlockId): File = getFile(blockId.name)

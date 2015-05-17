@@ -73,7 +73,7 @@ private[spark] class Stage(
 
   val name = callSite.shortForm
   val details = callSite.longForm
-
+  logInfo("--new---callSite--name(shortForm):"+name+" detail(longForm)"+details)
   /** Pointer to the latest [StageInfo] object, set by DAGScheduler. */
   var latestInfo: StageInfo = StageInfo.fromStage(this)
 

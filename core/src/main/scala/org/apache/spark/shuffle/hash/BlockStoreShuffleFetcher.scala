@@ -55,6 +55,7 @@ private[hash] object BlockStoreShuffleFetcher extends Logging {
     }
 
     def unpackBlock(blockPair: (BlockId, Option[Iterator[Any]])) : Iterator[T] = {
+      logInfo("---unpackBlock--<blockPari>"+blockPair)
       val blockId = blockPair._1
       val blockOption = blockPair._2
       blockOption match {

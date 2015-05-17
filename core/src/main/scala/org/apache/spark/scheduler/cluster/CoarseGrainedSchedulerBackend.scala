@@ -71,6 +71,8 @@ class CoarseGrainedSchedulerBackend(scheduler: TaskSchedulerImpl, actorSystem: A
     private val freeCores = new HashMap[String, Int]
     private val totalCores = new HashMap[String, Int]
     private val addressToExecutorId = new HashMap[Address, String]
+    
+    logInfo("####### DriverActor already run ######") 
 
     override def preStart() {
       // Listen for remote client disconnection events, since they don't go through Akka's watch()
@@ -160,6 +162,7 @@ class CoarseGrainedSchedulerBackend(scheduler: TaskSchedulerImpl, actorSystem: A
 
     // Launch tasks returned by a set of resource offers
     def launchTasks(tasks: Seq[Seq[TaskDescription]]) {
+      //logInfo("--"+this+"--start to launch tasks:"+tasks)
       for (task <- tasks.flatten) {
         val ser = SparkEnv.get.closureSerializer.newInstance()
         val serializedTask = ser.serialize(task)
@@ -215,6 +218,9 @@ class CoarseGrainedSchedulerBackend(scheduler: TaskSchedulerImpl, actorSystem: A
     // TODO (prashant) send conf instead of properties
     driverActor = actorSystem.actorOf(
       Props(new DriverActor(properties)), name = CoarseGrainedSchedulerBackend.ACTOR_NAME)
+    logInfo("--DriverActor--created"+driverActor)
+    //readLine("--DriverActor--created"+driverActor)
+
   }
 
   def stopExecutors() {

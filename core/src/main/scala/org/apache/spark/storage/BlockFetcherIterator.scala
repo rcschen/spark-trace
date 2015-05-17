@@ -218,7 +218,10 @@ object BlockFetcherIterator {
       // Send out initial requests for blocks, up to our maxBytesInFlight
       while (!fetchRequests.isEmpty &&
         (bytesInFlight == 0 || bytesInFlight + fetchRequests.front.size <= maxBytesInFlight)) {
+        logInfo("@@@@@@@ start to send fetchRequest @@@@@@@@")
         sendRequest(fetchRequests.dequeue())
+        logInfo("####### stop to send fetchRequest  #######")
+
       }
 
       val numFetches = remoteRequests.size - fetchRequests.size
@@ -226,7 +229,9 @@ object BlockFetcherIterator {
 
       // Get Local Blocks
       startTime = System.currentTimeMillis
+      logInfo(">>>>>>>> start getLocalBlock <<<<<<<<<<<")
       getLocalBlocks()
+      logInfo("<<<<<<<< stop getLocalBlock >>>>>>>>>>>")
       logDebug("Got local blocks in " + Utils.getUsedTimeMs(startTime) + " ms")
     }
 

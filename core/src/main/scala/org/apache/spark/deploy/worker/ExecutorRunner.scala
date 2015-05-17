@@ -138,6 +138,7 @@ private[spark] class ExecutorRunner(
 
       // Launch the process
       val command = getCommandSeq
+      logInfo("### ExecutorRunner fetchAndRunExecutor ###")
       logInfo("Launch command: " + command.mkString("\"", "\" \"", "\""))
       val builder = new ProcessBuilder(command: _*).directory(executorDir)
       val env = builder.environment()

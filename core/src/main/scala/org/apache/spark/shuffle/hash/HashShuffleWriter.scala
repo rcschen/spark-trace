@@ -61,9 +61,11 @@ private[spark] class HashShuffleWriter[K, V](
     } else {
       records
     }
+    logInfo("--write--iter:"+iter)
 
     for (elem <- iter) {
       val bucketId = dep.partitioner.getPartition(elem._1)
+      logInfo("--write--elem:"+elem+" --buckedId:"+bucketId)
       shuffle.writers(bucketId).write(elem)
     }
   }

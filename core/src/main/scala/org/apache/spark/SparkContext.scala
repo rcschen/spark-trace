@@ -1066,6 +1066,12 @@ class SparkContext(config: SparkConf) extends Logging {
     val callSite = getCallSite
     val cleanedFunc = clean(func)
     logInfo("Starting job: " + callSite.shortForm)
+    logInfo("-------ARE YOU READY???------------")
+    logInfo("-------RDD------------"+rdd)
+    logInfo("-------func------------"+func)
+    logInfo("-------partitions------------"+partitions)
+    logInfo("-------allowLocal------------"+allowLocal)
+    logInfo("-------resultHandler------------"+resultHandler)
     val start = System.nanoTime
     dagScheduler.runJob(rdd, cleanedFunc, partitions, callSite, allowLocal,
       resultHandler, localProperties.get)
@@ -1107,6 +1113,7 @@ class SparkContext(config: SparkConf) extends Logging {
    * Run a job on all partitions in an RDD and return the results in an array.
    */
   def runJob[T, U: ClassTag](rdd: RDD[T], func: (TaskContext, Iterator[T]) => U): Array[U] = {
+    logInfo("--runJob1--func:"+func)
     runJob(rdd, func, 0 until rdd.partitions.size, false)
   }
 
@@ -1114,6 +1121,7 @@ class SparkContext(config: SparkConf) extends Logging {
    * Run a job on all partitions in an RDD and return the results in an array.
    */
   def runJob[T, U: ClassTag](rdd: RDD[T], func: Iterator[T] => U): Array[U] = {
+    logInfo("--runJob2--func:"+func)
     runJob(rdd, func, 0 until rdd.partitions.size, false)
   }
 
@@ -1125,6 +1133,7 @@ class SparkContext(config: SparkConf) extends Logging {
     processPartition: (TaskContext, Iterator[T]) => U,
     resultHandler: (Int, U) => Unit)
   {
+    logInfo("--runJob2--processPartition:"+processPartition+" resultHandler:"+resultHandler)
     runJob[T, U](rdd, processPartition, 0 until rdd.partitions.size, false, resultHandler)
   }
 

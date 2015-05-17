@@ -38,13 +38,13 @@ private[spark] class BlockManagerWorker(val blockManager: BlockManager) extends 
   blockManager.connectionManager.onReceiveMessage(onBlockMessageReceive)
 
   def onBlockMessageReceive(msg: Message, id: ConnectionManagerId): Option[Message] = {
-    logDebug("Handling message " + msg)
+    logInfo("--onBlockMessageReceive-(callback?)--Handling message " + msg)
     msg match {
       case bufferMessage: BufferMessage => {
         try {
-          logDebug("Handling as a buffer message " + bufferMessage)
+          logInfo("--onBlockMessageReceive-Handling as a buffer message " + bufferMessage)
           val blockMessages = BlockMessageArray.fromBufferMessage(bufferMessage)
-          logDebug("Parsed as a block message array")
+          logInfo("--onBlockMessageReceive-Parsed as a block message array")
           val responseMessages = blockMessages.map(processBlockMessage).filter(_ != None).map(_.get)
           Some(new BlockMessageArray(responseMessages).toBufferMessage)
         } catch {
@@ -68,14 +68,17 @@ private[spark] class BlockManagerWorker(val blockManager: BlockManager) extends 
   def processBlockMessage(blockMessage: BlockMessage): Option[BlockMessage] = {
     blockMessage.getType match {
       case BlockMessage.TYPE_PUT_BLOCK => {
+        logInfo("--processBlockMessage--PutBlock--"+blockMessage.getId+" "+ blockMessage.getData+" "+blockMessage.getLevel)
         val pB = PutBlock(blockMessage.getId, blockMessage.getData, blockMessage.getLevel)
         logDebug("Received [" + pB + "]")
         putBlock(pB.id, pB.data, pB.level)
         None
       }
       case BlockMessage.TYPE_GET_BLOCK => {
+        logInfo("--processBlockMessage--GetBlock--"+blockMessage.getId)
+
         val gB = new GetBlock(blockMessage.getId)
-        logDebug("Received [" + gB + "]")
+        logInfo("Received [" + gB + "]")
         val buffer = getBlock(gB.id)
         if (buffer == null) {
           return None
@@ -88,20 +91,20 @@ private[spark] class BlockManagerWorker(val blockManager: BlockManager) extends 
 
   private def putBlock(id: BlockId, bytes: ByteBuffer, level: StorageLevel) {
     val startTimeMs = System.currentTimeMillis()
-    logDebug("PutBlock " + id + " started from " + startTimeMs + " with data: " + bytes)
+    logInfo("PutBlock " + id + " started from " + startTimeMs + " with data: " + bytes)
     blockManager.putBytes(id, bytes, level)
-    logDebug("PutBlock " + id + " used " + Utils.getUsedTimeMs(startTimeMs)
+    logInfo("PutBlock " + id + " used " + Utils.getUsedTimeMs(startTimeMs)
         + " with data size: " + bytes.limit)
   }
 
   private def getBlock(id: BlockId): ByteBuffer = {
     val startTimeMs = System.currentTimeMillis()
-    logDebug("GetBlock " + id + " started from " + startTimeMs)
+    logInfo("GetBlock " + id + " started from " + startTimeMs)
     val buffer = blockManager.getLocalBytes(id) match {
       case Some(bytes) => bytes
       case None => null
     }
-    logDebug("GetBlock " + id + " used " + Utils.getUsedTimeMs(startTimeMs)
+    logInfo("GetBlock " + id + " used " + Utils.getUsedTimeMs(startTimeMs)
         + " and got buffer " + buffer)
     buffer
   }

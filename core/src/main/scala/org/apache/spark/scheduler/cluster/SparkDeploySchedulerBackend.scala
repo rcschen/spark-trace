@@ -67,6 +67,7 @@ private[spark] class SparkDeploySchedulerBackend(
       sc.ui.appUIAddress, sc.eventLogger.map(_.logDir))
 
     client = new AppClient(sc.env.actorSystem, masters, appDesc, this, conf)
+    //readLine("---AppClient is already newwed---do you want to continue")
     client.start()
   }
 

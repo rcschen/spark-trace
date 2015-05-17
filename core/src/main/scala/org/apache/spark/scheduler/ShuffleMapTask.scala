@@ -44,7 +44,7 @@ private[spark] class ShuffleMapTask(
     partition: Partition,
     @transient private var locs: Seq[TaskLocation])
   extends Task[MapStatus](stageId, partition.index) with Logging {
-
+  logInfo("---ShuffleMapTask--<partition.index>"+partition.index)
   /** A constructor used only in test suites. This does not require passing in an RDD. */
   def this(partitionId: Int) {
     this(0, null, new Partition { override def index = 0 }, null)

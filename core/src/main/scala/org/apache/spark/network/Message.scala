@@ -21,6 +21,7 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 
 import scala.collection.mutable.ArrayBuffer
+import org.apache.spark.Logging
 
 private[spark] abstract class Message(val typ: Long, val id: Int) {
   var senderAddress: InetSocketAddress = null
@@ -42,7 +43,7 @@ private[spark] abstract class Message(val typ: Long, val id: Int) {
 }
 
 
-private[spark] object Message {
+private[spark] object Message extends Logging{
   val BUFFER_MESSAGE = 1111111111L
 
   var lastId = 1
@@ -62,6 +63,8 @@ private[spark] object Message {
     if (dataBuffers.exists(_ == null)) {
       throw new Exception("Attempting to create buffer message with null buffer")
     }
+    var ab = new ArrayBuffer[ByteBuffer] ++= dataBuffers
+    logInfo("-#-#-#-#-dataBudders-#-#-#-#-#>"+dataBuffers+" @@@arrayBuffer@@@ "+ab )
     new BufferMessage(getNewId(), new ArrayBuffer[ByteBuffer] ++= dataBuffers, ackId)
   }
 

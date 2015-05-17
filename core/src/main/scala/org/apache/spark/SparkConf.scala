@@ -62,6 +62,7 @@ class SparkConf(loadDefaults: Boolean) extends Cloneable with Logging {
     if (value == null) {
       throw new NullPointerException("null value")
     }
+    println("~~~~~~~"+key+"~~~~"+value)
     settings(key) = value
     this
   }

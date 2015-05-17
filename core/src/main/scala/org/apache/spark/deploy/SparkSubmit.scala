@@ -25,6 +25,7 @@ import scala.collection.mutable.{ArrayBuffer, HashMap, Map}
 
 import org.apache.spark.executor.ExecutorURLClassLoader
 import org.apache.spark.util.Utils
+import org.apache.spark.Logging
 
 /**
  * Main gateway of launching a Spark application.
@@ -32,7 +33,7 @@ import org.apache.spark.util.Utils
  * This program handles setting up the classpath with relevant Spark dependencies and provides
  * a layer over the different cluster managers and deploy modes that Spark supports.
  */
-object SparkSubmit {
+object SparkSubmit extends Logging {
 
   // Cluster managers
   private val YARN = 1
@@ -313,6 +314,7 @@ object SparkSubmit {
     }
 
     var mainClass: Class[_] = null
+    logInfo("childMainClass---0-0---->"+childMainClass)
 
     try {
       mainClass = Class.forName(childMainClass, true, loader)
@@ -323,6 +325,9 @@ object SparkSubmit {
     }
 
     val mainMethod = mainClass.getMethod("main", new Array[String](0).getClass)
+    logInfo("childMainClass---0-1----->"+childMainClass)
+    logInfo("mainMethod----1---->"+new Array[String](0).getClass)
+    logInfo("mainMethod----2---->"+mainMethod)
 
     try {
       mainMethod.invoke(null, childArgs.toArray)

@@ -27,10 +27,28 @@ private[spark] object ReceiverTest {
     println("Started connection manager with id = " + manager.id)
 
     manager.onReceiveMessage((msg: Message, id: ConnectionManagerId) => {
-      /* println("Received [" + msg + "] from [" + id + "] at " + System.currentTimeMillis) */
+      println("----------------------------------------------------------------")
+
+      println("Received [" + msg + "] from [" + id + "] at " + System.currentTimeMillis)
+      println( "message Size ::"+msg.size)
+      val messageChunk =  msg.getChunkForReceiving(msg.size).getOrElse(null) 
+      println("??????"+messageChunk)
+      if (messageChunk != null) {
+          val messageBuffer = messageChunk.getBuffer()
+          try {
+              //messageBuffer.flip
+              println("REMAINNNNNNNNNNN"+messageBuffer.remaining)
+              while(messageBuffer.remaining > 0) {
+                    println("-------GET-->---->"+messageBuffer.get())
+              }
+          } catch {
+              case e: Exception => println("!!!!!buffer exception!!!!"+ e)
+          } 
+      }
       val buffer = ByteBuffer.wrap("response".getBytes("utf-8"))
       Some(Message.createBufferMessage(buffer, msg.id))
     })
+    println("start to be in standBy")
     Thread.currentThread.join()
   }
 }

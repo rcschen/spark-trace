@@ -487,6 +487,8 @@ private[spark] class ReceivingConnection(
       while (true) {
         if (currentChunk == null) {
           val headerBytesRead = channel.read(headerBuffer)
+          logInfo("--ReceivingConnection---(read)--channel-read---headerBytesRead-"+headerBytesRead)
+
           if (headerBytesRead == -1) {
             close()
             return false
@@ -525,8 +527,10 @@ private[spark] class ReceivingConnection(
         if (currentChunk == null) throw new Exception("No message chunk to receive data")
 
         val bytesRead = channel.read(currentChunk.buffer)
+        logInfo("--ReceivingConnection---(read)--channel-read---bytesRead-"+bytesRead)
         if (bytesRead == 0) {
           // re-register for read event ...
+          logInfo("--ReceivingConnection---(read)--channel-read---bytesRead is 0")
           return true
         } else if (bytesRead == -1) {
           close()
@@ -541,9 +545,13 @@ private[spark] class ReceivingConnection(
           if (bufferMessage.isCompletelyReceived) {
             bufferMessage.flip()
             bufferMessage.finishTime = System.currentTimeMillis
-            logDebug("Finished receiving [" + bufferMessage + "] from " +
+            logInfo("Finished receiving [" + bufferMessage + "] from " +
               "[" + getRemoteConnectionManagerId() + "] in " + bufferMessage.timeTaken)
             if (onReceiveCallback != null) {
+              logInfo("--ReceivingConnection--channel-read-- start to run call back--")
+              logInfo(onReceiveCallback+"   "+this+"  "+bufferMessage)
+              logInfo("--ReceivingConnection ****************************************")
+
               onReceiveCallback(this, bufferMessage)
             }
             inbox.removeMessage(bufferMessage)
@@ -563,7 +571,10 @@ private[spark] class ReceivingConnection(
     true
   }
 
-  def onReceive(callback: (Connection, Message) => Unit) {onReceiveCallback = callback}
+  def onReceive(callback: (Connection, Message) => Unit) {
+       logInfo("!!!!!onReceievecallback!!!!"+callback)
+       onReceiveCallback = callback
+  }
 
   // override def changeInterestForRead(): Boolean = ! isClosed
   override def changeInterestForRead(): Boolean = true

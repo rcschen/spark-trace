@@ -55,6 +55,8 @@ private[spark] class AppClient(
   var appId: String = null
   var registered = false
   var activeMasterUrl: String = null
+     
+  logInfo("#### AppClient is already newed #####")
 
   class ClientActor extends Actor with ActorLogReceive with Logging {
     var master: ActorSelection = null
@@ -188,6 +190,7 @@ private[spark] class AppClient(
 
   def start() {
     // Just launch an actor; it will call back into the listener.
+    logInfo("#### Client Actor is already created #####")
     actor = actorSystem.actorOf(Props(new ClientActor))
   }
 

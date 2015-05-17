@@ -21,13 +21,14 @@ import org.apache.spark.{InterruptibleIterator, TaskContext}
 import org.apache.spark.serializer.Serializer
 import org.apache.spark.shuffle.{BaseShuffleHandle, ShuffleReader}
 import org.apache.spark.util.collection.ExternalSorter
+import org.apache.spark.Logging
 
 private[spark] class HashShuffleReader[K, C](
     handle: BaseShuffleHandle[K, _, C],
     startPartition: Int,
     endPartition: Int,
     context: TaskContext)
-  extends ShuffleReader[K, C]
+  extends ShuffleReader[K, C] with Logging
 {
   require(endPartition == startPartition + 1,
     "Hash shuffle currently only supports fetching one partition")
@@ -53,19 +54,21 @@ private[spark] class HashShuffleReader[K, C](
       // Convert the Product2s to pairs since this is what downstream RDDs currently expect
       iter.asInstanceOf[Iterator[Product2[K, C]]].map(pair => (pair._1, pair._2))
     }
-
+    val showArray = aggregatedIter.toList    
+    logInfo("----hash read aggregratedIter====>"+showArray)
+    val aggregatedIter1 = showArray.toIterator
     // Sort the output if there is a sort ordering defined.
     dep.keyOrdering match {
       case Some(keyOrd: Ordering[K]) =>
         // Create an ExternalSorter to sort the data. Note that if spark.shuffle.spill is disabled,
         // the ExternalSorter won't spill to disk.
         val sorter = new ExternalSorter[K, C, C](ordering = Some(keyOrd), serializer = Some(ser))
-        sorter.insertAll(aggregatedIter)
+        sorter.insertAll(aggregatedIter1)
         context.taskMetrics.memoryBytesSpilled += sorter.memoryBytesSpilled
         context.taskMetrics.diskBytesSpilled += sorter.diskBytesSpilled
         sorter.iterator
       case None =>
-        aggregatedIter
+        aggregatedIter1
     }
   }
 

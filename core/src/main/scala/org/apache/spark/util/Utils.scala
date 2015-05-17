@@ -1131,6 +1131,9 @@ private[spark] object Utils extends Logging {
       count += 1L
       iterator.next()
     }
+    logInfo("--getInteratorSize=--->"+count)
+    //readLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1")
+
     count
   }
 

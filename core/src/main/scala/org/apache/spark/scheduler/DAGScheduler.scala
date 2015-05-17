@@ -828,6 +828,7 @@ class DAGScheduler(
         } else {
           closureSerializer.serialize((stage.rdd, stage.resultOfJob.get.func) : AnyRef).array()
         }
+      logInfo("--submitMissing--taskBinaryBytes:"+taskBinaryBytes)
       taskBinary = sc.broadcast(taskBinaryBytes)
     } catch {
       // In the case of a failure during serialization, abort the stage.
@@ -863,7 +864,7 @@ class DAGScheduler(
     }
     logInfo("--subMissingTask----Tasks"+tasks)
     tasks.foreach(x=> logInfo("==subMissingTask===foreach=taskstage=>"+x.stageId+"-paid-"+x.partitionId))
-    readLine("------------------------------------------------------------")
+    //readLine("------------------------------------------------------------")
     if (tasks.size > 0) {
       // Preemptively serialize a task to make sure it can be serialized. We are catching this
       // exception here because it would be fairly hard to catch the non-serializable exception
